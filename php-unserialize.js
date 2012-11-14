@@ -1,12 +1,20 @@
+// Wrapper for nodejs/browser compat
+(function (exports) {
 
-module.exports = {
-  unserialize: unserialize,
-  unserializeSession: unserializeSession
-};
+// Public API
+exports.unserialize = unserialize;
+exports.unserializeSession = unserializeSession;
 
-
-// Taken from https://github.com/kvz/phpjs/blob/master/functions/var/unserialize.js
-// Fixed window reference to make it nodejs-compatible
+/**
+ * Unserialize data taken from PHP's serialize() output
+ *
+ * Taken from https://github.com/kvz/phpjs/blob/master/functions/var/unserialize.js
+ * Fixed window reference to make it nodejs-compatible
+ *
+ * @param string serialized data
+ * @return unserialized data
+ * @throws
+ */
 function unserialize (data) {
   // http://kevin.vanzonneveld.net
   // +     original by: Arpad Ray (mailto:arpad@php.net)
@@ -166,6 +174,13 @@ function unserialize (data) {
   return _unserialize((data + ''), 0)[2];
 }
 
+/**
+ * Parse PHP-serialized session data
+ *
+ * @param string serialized session
+ * @return unserialized data
+ * @throws
+ */
 function unserializeSession (input) {
   return input.split(/\|/).reduce(function (output, part, index, parts) {
     // First part = $key
@@ -190,3 +205,6 @@ function unserializeSession (input) {
     return output;
   }, {});
 }
+
+// /Wrapper
+})((typeof window !== 'undefined') ? (window.PHPUnserialize = {}) : exports);
