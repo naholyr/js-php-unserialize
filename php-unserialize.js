@@ -1,5 +1,5 @@
 // Wrapper for nodejs/browser compat
-(function (exports) {
+(function (window, exports) {
 
 // Public API
 exports.unserialize = unserialize;
@@ -38,7 +38,6 @@ function unserialize (data) {
   // *       returns 1: ['Kevin', 'van', 'Zonneveld']
   // *       example 2: unserialize('a:3:{s:9:"firstName";s:5:"Kevin";s:7:"midName";s:3:"van";s:7:"surName";s:9:"Zonneveld";}');
   // *       returns 2: {firstName: 'Kevin', midName: 'van', surName: 'Zonneveld'}
-  if (!this.window) this.window = this;
   var that = this,
     utf8Overhead = function (chr) {
       // http://phpjs.org/functions/unserialize:571#comment_95906
@@ -52,7 +51,7 @@ function unserialize (data) {
       return 2;
     },
     error = function (type, msg, filename, line) {
-      throw new that.window[type](msg, filename, line);
+      throw new window[type](msg, filename, line);
     },
     read_until = function (data, offset, stopchr) {
       var i = 2, buf = [], chr = data.slice(offset, offset + 1);
@@ -207,4 +206,4 @@ function unserializeSession (input) {
 }
 
 // /Wrapper
-})((typeof window !== 'undefined') ? (window.PHPUnserialize = {}) : exports);
+})((typeof window === 'undefined') ? global : window, (typeof window === 'undefined') ? exports : (window.PHPUnserialize = {}));
