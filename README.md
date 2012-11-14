@@ -25,7 +25,7 @@ The use it the usual way :
 ```javascript
 var PHPUnserialize = require('php-unserialize');
 
-console.log(PHPUnserialize.unserialize('a:0:{}')); // []
+console.log(PHPUnserialize.unserialize('a:0:{}')); // {}
 ```
 
 ### Browser
@@ -35,13 +35,18 @@ console.log(PHPUnserialize.unserialize('a:0:{}')); // []
 ```html
 <script src="/path/to/php-unserialize.js"></script>
 <script>
-  console.log(PHPUnserialize.unserialize('a:0:{}')); // []
+  console.log(PHPUnserialize.unserialize('a:0:{}')); // {}
 </script>
 ```
 
 **Compatibility issues**
 
 This library has been tested server-side only. For example it uses `[].reduce`, so it may not work on some browsers. Do not hesitate to make pull requests to fix it for you favorite browsers :)
+
+### Notes
+
+* Note that `array()` will be converted to `{}` and not `[]`. That can be discussed as `array()` in PHP has various significations. A choice had to be done, but it may change in the future (cf. next point).
+* A less obvious conversion is `array('a', 'b')` which will be converted to `{"0": "a", "1": "b"}`. Quite annoying, and it will be fixed if necessary (this means I won't work on this issue unless you really need it, but I agree this is not normal behavior).
 
 Usage
 -----
