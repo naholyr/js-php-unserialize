@@ -33,6 +33,7 @@ describe('unserialize()', function () {
   it('should unserialize data sample #2', test_serialized_data(2));
   it('should unserialize data sample #3', test_serialized_data(3));
   it('should unserialize data sample #4', test_serialized_data(4));
+  it('should unserialize data sample #5', test_serialized_data(5));
   it('should fail on erronous data sample #1', test_serialized_error(1));
   it('should fail on erronous data sample #2', test_serialized_error(1));
 });
