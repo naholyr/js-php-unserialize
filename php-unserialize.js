@@ -121,58 +121,144 @@ function unserialize (data) {
           readdata = readData[1];
           dataoffset += chrs + 1;
           break;
+        case 'c':
+          var res = getClass(data, dataoffset);
+          dataoffset = res[0];
+          readdata = res[1];
+          break;
+        case 'o':
+          var res = getObject(data, dataoffset);
+          dataoffset = res[0];
+          readdata = res[1];
+          break;
         case 'n':
           readdata = null;
           break;
         case 's':
-          ccount = read_until(data, dataoffset, ':');
-          chrs = ccount[0];
-          stringlength = ccount[1];
-          dataoffset += chrs + 2;
-
-          readData = read_chrs(data, dataoffset + 1, parseInt(stringlength, 10));
-          chrs = readData[0];
-          readdata = readData[1];
-          dataoffset += chrs + 2;
-          if (chrs != parseInt(stringlength, 10) && chrs != readdata.length) {
-            error('SyntaxError', 'String length mismatch');
-          }
+          var res = getString(data, dataoffset);
+          dataoffset = res[0];
+          readdata = res[1];
           break;
         case 'a':
-          readdata = {};
-
-          keyandchrs = read_until(data, dataoffset, ':');
-          chrs = keyandchrs[0];
-          keys = keyandchrs[1];
-          dataoffset += chrs + 2;
-
-          for (i = 0; i < parseInt(keys, 10); i++) {
-            kprops = _unserialize(data, dataoffset);
-            kchrs = kprops[1];
-            key = kprops[2];
-            dataoffset += kchrs;
-
-            vprops = _unserialize(data, dataoffset);
-            vchrs = vprops[1];
-            value = vprops[2];
-            dataoffset += vchrs;
-
-            readdata[key] = value;
-          }
-
-          dataoffset += 1;
+          var res = getArray(data, dataoffset);
+          dataoffset = res[0];
+          readdata = res[1];
           break;
         default:
-          error('SyntaxError', 'Unknown / Unhandled data type(s): ' + dtype);
+          error('SyntaxError', 'Unknown / Unhandled data type(s): ' + dtype + ' :: ' + offset + JSON.stringify([dtype, data[offset], data.slice(offset-20, offset + 10), data]));
           break;
       }
       return [dtype, dataoffset - offset, typeconvert(readdata)];
     }
   ;
 
-  return _unserialize((data + ''), 0)[2];
+function getArray(data, offset) {
+  var readdata
+    , chrs
+    , keys
+    , dataoffset = offset
+    , kprops
+    , kchrs
+    , key
+    , vprops
+    , vchrs
+    , keyandchrs
+    , i
+    , value;
+  readdata = {};
+
+  keyandchrs = read_until(data, dataoffset, ':');
+  chrs = keyandchrs[0];
+  keys = keyandchrs[1];
+  dataoffset += chrs + 2;
+
+  for (i = 0; i < parseInt(keys, 10); i++) {
+    kprops = _unserialize(data, dataoffset);
+    kchrs = kprops[1];
+    key = kprops[2];
+    dataoffset += kchrs;
+
+    vprops = _unserialize(data, dataoffset);
+    vchrs = vprops[1];
+    value = vprops[2];
+    dataoffset += vchrs;
+
+    readdata[key] = value;
+  }
+
+  dataoffset += 1;
+  return [dataoffset, readdata];
 }
 
+function getCount(data, offset) {
+  var ccount
+    , count
+    , chrs
+    , stringlength
+    , readData
+    , readdata;
+  ccount = read_until(data, offset, ':');
+  chrs = ccount[0];
+  count = ccount[1];
+  offset += chrs + 2;
+  return [offset, count];
+};
+
+function getObject(data, offset) {
+  var res = getString(data, offset)
+    , body
+    , classname = res[1];
+
+  offset = res[0];
+  res = getArray(data, offset);
+  offset = res[0];
+  return [offset, {name: classname, body: res[1]}];
+};
+  
+
+function getClass(data, offset) {
+  var res = getString(data, offset)
+    , body
+    , classname = res[1];
+
+  offset = res[0];
+  res = getCount(data, offset);
+  offset = res[0];
+  body = data.slice(offset - 1, offset + parseInt(res[1]) );
+  if (body[0] !== '{' || body[body.length - 1] !== '}') {
+    throw new Error('invalid body defn: ' + JSON.stringify([body, offset, res[1], data.slice(offset-1, offset+10)]));
+  }
+  body = body.slice(1, -1);
+  try {
+    body = _unserialize(body, 0)[2];
+  } catch (e) {
+  }
+  return [offset + parseInt(res[1]) + 1, {name: classname, body: body}];
+};
+
+function getString(data, offset) {
+  var ccount
+    , chrs
+    , stringlength
+    , readData
+    , readdata;
+  ccount = read_until(data, offset, ':');
+  chrs = ccount[0];
+  stringlength = ccount[1];
+  offset += chrs + 2;
+
+  readData = read_chrs(data, offset + 1, parseInt(stringlength, 10));
+  chrs = readData[0];
+  readdata = readData[1];
+  offset += chrs + 2;
+  if (chrs != parseInt(stringlength, 10) && chrs != readdata.length) {
+    error('SyntaxError', 'String length mismatch');
+  }
+  return [offset, readdata];
+};
+
+  return _unserialize((data + ''), 0)[2];
+}
 /**
  * Parse PHP-serialized session data
  *

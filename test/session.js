@@ -16,4 +16,13 @@ describe('unserializeSession()', function () {
       done();
     });
   });
+  it('should unserialize data sample 2', function (done) {
+    var expected = require('./fixtures/unserialized-session-2.json');
+    readFile(path.join(__dirname, 'fixtures', 'serialized-session-2.txt'), function (err, buffer) {
+      if (err) return done(err);
+      var unserialized = unserialize(buffer.toString());
+      expect(unserialized).to.eql(expected);
+      done();
+    });
+  });
 });
