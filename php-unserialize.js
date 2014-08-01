@@ -206,4 +206,4 @@ function unserializeSession (input) {
 }
 
 // /Wrapper
-})((typeof window === 'undefined') ? global : window, (typeof window === 'undefined') ? exports : (window.PHPUnserialize = {}));
+})((typeof window === 'undefined') ? global : window, (typeof exports === 'undefined') ? (window.PHPUnserialize = {}) : exports);
