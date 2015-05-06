@@ -214,7 +214,7 @@ function getObject(data, offset) {
   offset = res[0];
   return [offset, {name: classname, body: res[1]}];
 };
-  
+
 
 function getClass(data, offset) {
   var res = getString(data, offset)
@@ -279,7 +279,7 @@ function unserializeSession (input) {
     }
     // Other output = $someSerializedStuff$key
     else {
-      var match = part.match(/^((?:.*?[;\}])+)([^;\}]+?)$/);
+      var match = part.match(/^((?:[\s\S]*?[;\}])+)([^;\}]+?)$/);
       if (match) {
         output[output._currKey] = unserialize(match[1]);
         output._currKey = match[2];
