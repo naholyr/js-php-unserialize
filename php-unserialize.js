@@ -142,6 +142,7 @@ function unserialize (data) {
           readdata = {};
 
           keyandchrs = read_until(data, dataoffset, ':');
+
           chrs = keyandchrs[0];
           keys = keyandchrs[1];
           dataoffset += chrs + 2;
@@ -162,10 +163,51 @@ function unserialize (data) {
 
           dataoffset += 1;
           break;
+        case 'o':
+          readdata = {};
+
+          keyandchrs = read_until(data, dataoffset, ':');
+
+          chrs = keyandchrs[0];
+          keys = keyandchrs[1];
+          dataoffset += chrs + 2;
+
+          // Parse object name
+          var objectName = read_chrs(data, dataoffset + 1, parseInt(keys, 10));
+          chrs = objectName[0];
+          objectKey = objectName[1];
+          dataoffset += chrs + 2;
+
+          readdata[objectKey] = {};
+
+          // Parse for each length
+          keyandchrs = read_until(data, dataoffset, ':');
+          chrs = keyandchrs[0];
+          keys = keyandchrs[1];
+          dataoffset += chrs + 2;
+
+          for (i = 0; i < parseInt(keys, 10); i++)
+          {
+            kprops = _unserialize(data, dataoffset);
+            kchrs = kprops[1];
+            key = kprops[2].replace('\u0000*\u0000', '');
+            dataoffset += kchrs;
+
+            vprops = _unserialize(data, dataoffset);
+            vchrs = vprops[1];
+            value = vprops[2];
+            dataoffset += vchrs;
+
+            readdata[objectKey][key] = value;
+          }
+
+          dataoffset += 1;
+          break;
         default:
           error('SyntaxError', 'Unknown / Unhandled data type(s): ' + dtype);
           break;
       }
+
       return [dtype, dataoffset - offset, typeconvert(readdata)];
     }
   ;
