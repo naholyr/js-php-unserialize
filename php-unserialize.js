@@ -193,7 +193,8 @@ function unserializeSession (input) {
     }
     // Other output = $someSerializedStuff$key
     else {
-      var match = part.match(/^((?:.*?[;\}])+)([^;\}]+?)$/);
+      var repper = part.replace(/(\n|\r)/g," ");
+	var match = repper.match(/^((?:.*?[;\}])+)([^;\}]+?)$/);
       if (match) {
         output[output._currKey] = unserialize(match[1]);
         output._currKey = match[2];
