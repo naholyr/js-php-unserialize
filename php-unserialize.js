@@ -84,6 +84,28 @@ function unserialize (data) {
         chrs = 0,
         typeconvert = function (x) {
           return x;
+        },
+        readArray = function () {
+          readdata = {};
+
+          keyandchrs = read_until(data, dataoffset, ':');
+          chrs = keyandchrs[0];
+          keys = keyandchrs[1];
+          dataoffset += chrs + 2;
+
+          for (i = 0; i < parseInt(keys, 10); i++) {
+            kprops = _unserialize(data, dataoffset);
+            kchrs = kprops[1];
+            key = kprops[2];
+            dataoffset += kchrs;
+
+            vprops = _unserialize(data, dataoffset);
+            vchrs = vprops[1];
+            value = vprops[2];
+            dataoffset += vchrs;
+
+            readdata[key] = value;
+          }
         };
 
       if (!offset) {
@@ -139,27 +161,17 @@ function unserialize (data) {
           }
           break;
         case 'a':
-          readdata = {};
+          readArray();
+          dataoffset += 1;
+          break;
+        case 'o':
+          ccount = read_until(data, dataoffset, ':');
+          dataoffset += ccount[0] + 2;
 
-          keyandchrs = read_until(data, dataoffset, ':');
-          chrs = keyandchrs[0];
-          keys = keyandchrs[1];
-          dataoffset += chrs + 2;
+          ccount = read_until(data, dataoffset, '"');
+          dataoffset += ccount[0] + 2;
 
-          for (i = 0; i < parseInt(keys, 10); i++) {
-            kprops = _unserialize(data, dataoffset);
-            kchrs = kprops[1];
-            key = kprops[2];
-            dataoffset += kchrs;
-
-            vprops = _unserialize(data, dataoffset);
-            vchrs = vprops[1];
-            value = vprops[2];
-            dataoffset += vchrs;
-
-            readdata[key] = value;
-          }
-
+          readArray();
           dataoffset += 1;
           break;
         default:
