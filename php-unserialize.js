@@ -196,7 +196,12 @@ function unserializeSession (input) {
   return input.split(/\|/).reduce(function (output, part, index, parts) {
     // First part = $key
     if (index === 0) {
-      output._currKey = part;
+      var matches = part.match(/[:"]*([^:"]+)$/);
+      if (typeof matches[1] != 'undefined') {
+        output._currKey = matches[1];
+      } else {
+        output._currKey = part;
+      }
     }
     // Last part = $someSerializedStuff
     else if (index === parts.length - 1) {
